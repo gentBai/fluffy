@@ -28,6 +28,13 @@ public class RouteHandler {
     this.cacheVersion = new AtomicLong(0);
   }
 
+  public RouteHandler(RouteRepository routeRepository, Vertx vertx) {
+    this.routeRepository = routeRepository;
+    this.vertx = vertx;
+    this.routeCache = Collections.synchronizedList(new ArrayList<>());
+    this.cacheVersion = new AtomicLong(0);
+  }
+
   public Future<GatewayRoute> matchRoute(String path, String method) {
     Promise<GatewayRoute> promise = Promise.promise();
 
