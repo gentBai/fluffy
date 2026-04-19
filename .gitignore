@@ -183,3 +183,22 @@ nbdist/
 !.vscode/tasks.json
 !.vscode/launch.json
 !.vscode/extensions.json
+
+### Claude/Agents ###
+CLAUDE.md
+AGENTS.md
+
+### Node ###
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+### Java ###
+*.class
+*.jar
+!.mvn/wrapper/maven-wrapper.jar
+
+### OS ###
+Icon
+.DS_Store
