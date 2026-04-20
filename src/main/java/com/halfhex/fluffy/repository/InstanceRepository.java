@@ -12,6 +12,11 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Repository for ServiceInstance entity operations.
+ *
+ * @author fluffy
+ */
 public class InstanceRepository {
 
   private final MySQLPool client;

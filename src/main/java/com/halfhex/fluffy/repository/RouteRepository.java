@@ -1,7 +1,6 @@
 package com.halfhex.fluffy.repository;
 
 import com.halfhex.fluffy.entity.GatewayRoute;
-import com.halfhex.fluffy.entity.GatewayRoute.HttpMethod;
 import io.vertx.core.Promise;
 import io.vertx.mysqlclient.MySQLClient;
 import io.vertx.mysqlclient.MySQLPool;
@@ -14,6 +13,11 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Repository for GatewayRoute entity operations.
+ *
+ * @author fluffy
+ */
 public class RouteRepository {
 
   private final MySQLPool client;
@@ -36,7 +40,7 @@ public class RouteRepository {
         .execute(Tuple.of(
           route.getName(),
           route.getPathPattern(),
-          route.getHttpMethod() != null ? route.getHttpMethod().name() : "*",
+          route.getHttpMethod() != null ? route.getHttpMethod() : "*",
           route.getServiceId(),
           route.getAuthRequired() ? 1 : 0,
           route.getRateLimitEnabled() ? 1 : 0,
@@ -72,7 +76,7 @@ public class RouteRepository {
         .execute(Tuple.of(
           route.getName(),
           route.getPathPattern(),
-          route.getHttpMethod() != null ? route.getHttpMethod().name() : "*",
+          route.getHttpMethod() != null ? route.getHttpMethod() : "*",
           route.getServiceId(),
           route.getAuthRequired() ? 1 : 0,
           route.getRateLimitEnabled() ? 1 : 0,
@@ -210,7 +214,7 @@ public class RouteRepository {
       .id(row.getLong("id"))
       .name(row.getString("name"))
       .pathPattern(row.getString("path_pattern"))
-      .httpMethod(parseHttpMethod(row.getString("http_method")))
+      .httpMethod(row.getString("http_method"))
       .serviceId(row.getLong("service_id"))
       .authRequired(row.getInteger("auth_required") == 1)
       .rateLimitEnabled(row.getInteger("rate_limit_enabled") == 1)
@@ -219,16 +223,5 @@ public class RouteRepository {
       .createdAt(row.getLocalDateTime("created_at"))
       .updatedAt(row.getLocalDateTime("updated_at"))
       .build();
-  }
-
-  private HttpMethod parseHttpMethod(String method) {
-    if (method == null || method.equals("*")) {
-      return null;
-    }
-    try {
-      return HttpMethod.valueOf(method);
-    } catch (IllegalArgumentException e) {
-      return null;
-    }
   }
 }
