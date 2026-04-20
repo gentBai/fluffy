@@ -1,62 +1,56 @@
 package com.halfhex.fluffy.entity;
 
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
+
 import java.time.LocalDateTime;
 
-public final class Blacklist {
+@TableName("blacklist")
+public class Blacklist {
 
-    public enum TargetType {
-        IP, USER, API_KEY
-    }
+    @TableId(type = IdType.AUTO)
+    private Long id;
 
-    private final Long id;
-    private final String targetValue;
-    private final TargetType targetType;
-    private final String reason;
-    private final LocalDateTime expiresAt;
-    private final LocalDateTime createdAt;
-    private final LocalDateTime updatedAt;
+    @TableField("target_type")
+    private String targetType;
 
-    private Blacklist(Builder builder) {
-        this.id = builder.id;
-        this.targetValue = builder.targetValue;
-        this.targetType = builder.targetType;
-        this.reason = builder.reason;
-        this.expiresAt = builder.expiresAt;
-        this.createdAt = builder.createdAt;
-        this.updatedAt = builder.updatedAt;
+    @TableField("target_value")
+    private String targetValue;
+
+    @TableField("reason")
+    private String reason;
+
+    @TableField("expires_at")
+    private LocalDateTime expiresAt;
+
+    @TableField("deleted")
+    private Boolean deleted;
+
+    @TableField("created_at")
+    private LocalDateTime createdAt;
+
+    @TableField("updated_at")
+    private LocalDateTime updatedAt;
+
+    public Blacklist() {
     }
 
     public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+    public String getTargetType() { return targetType; }
+    public void setTargetType(String targetType) { this.targetType = targetType; }
     public String getTargetValue() { return targetValue; }
-    public TargetType getTargetType() { return targetType; }
+    public void setTargetValue(String targetValue) { this.targetValue = targetValue; }
     public String getReason() { return reason; }
+    public void setReason(String reason) { this.reason = reason; }
     public LocalDateTime getExpiresAt() { return expiresAt; }
+    public void setExpiresAt(LocalDateTime expiresAt) { this.expiresAt = expiresAt; }
+    public Boolean getDeleted() { return deleted; }
+    public void setDeleted(Boolean deleted) { this.deleted = deleted; }
     public LocalDateTime getCreatedAt() { return createdAt; }
+    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
     public LocalDateTime getUpdatedAt() { return updatedAt; }
-
-    public static Builder builder() {
-        return new Builder();
-    }
-
-    public static class Builder {
-        private Long id;
-        private String targetValue;
-        private TargetType targetType;
-        private String reason;
-        private LocalDateTime expiresAt;
-        private LocalDateTime createdAt;
-        private LocalDateTime updatedAt;
-
-        public Builder id(Long id) { this.id = id; return this; }
-        public Builder targetValue(String targetValue) { this.targetValue = targetValue; return this; }
-        public Builder targetType(TargetType targetType) { this.targetType = targetType; return this; }
-        public Builder reason(String reason) { this.reason = reason; return this; }
-        public Builder expiresAt(LocalDateTime expiresAt) { this.expiresAt = expiresAt; return this; }
-        public Builder createdAt(LocalDateTime createdAt) { this.createdAt = createdAt; return this; }
-        public Builder updatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; return this; }
-
-        public Blacklist build() {
-            return new Blacklist(this);
-        }
-    }
+    public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
 }

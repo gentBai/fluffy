@@ -1,63 +1,66 @@
 package com.halfhex.fluffy.entity;
 
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
+
 import java.time.LocalDateTime;
 
-public final class ApiKey {
+@TableName("api_key")
+public class ApiKey {
 
-    private final Long id;
-    private final String key;
-    private final String name;
-    private final Long userId;
-    private final Boolean enabled;
-    private final LocalDateTime expiresAt;
-    private final LocalDateTime createdAt;
-    private final LocalDateTime updatedAt;
+    @TableId(type = IdType.AUTO)
+    private Long id;
 
-    private ApiKey(Builder builder) {
-        this.id = builder.id;
-        this.key = builder.key;
-        this.name = builder.name;
-        this.userId = builder.userId;
-        this.enabled = builder.enabled;
-        this.expiresAt = builder.expiresAt;
-        this.createdAt = builder.createdAt;
-        this.updatedAt = builder.updatedAt;
+    @TableField("key_value")
+    private String keyValue;
+
+    @TableField("user_id")
+    private Long userId;
+
+    @TableField("secret")
+    private String secret;
+
+    @TableField("name")
+    private String name;
+
+    @TableField("active")
+    private Boolean active;
+
+    @TableField("expires_at")
+    private LocalDateTime expiresAt;
+
+    @TableField("deleted")
+    private Boolean deleted;
+
+    @TableField("created_at")
+    private LocalDateTime createdAt;
+
+    @TableField("updated_at")
+    private LocalDateTime updatedAt;
+
+    public ApiKey() {
     }
 
     public Long getId() { return id; }
-    public String getKey() { return key; }
-    public String getName() { return name; }
+    public void setId(Long id) { this.id = id; }
+    public String getKeyValue() { return keyValue; }
+    public void setKeyValue(String keyValue) { this.keyValue = keyValue; }
     public Long getUserId() { return userId; }
-    public Boolean getEnabled() { return enabled; }
+    public void setUserId(Long userId) { this.userId = userId; }
+    public String getSecret() { return secret; }
+    public void setSecret(String secret) { this.secret = secret; }
+    public String getName() { return name; }
+    public void setName(String name) { this.name = name; }
+    public Boolean getActive() { return active; }
+    public void setActive(Boolean active) { this.active = active; }
     public LocalDateTime getExpiresAt() { return expiresAt; }
+    public void setExpiresAt(LocalDateTime expiresAt) { this.expiresAt = expiresAt; }
+    public Boolean getDeleted() { return deleted; }
+    public void setDeleted(Boolean deleted) { this.deleted = deleted; }
     public LocalDateTime getCreatedAt() { return createdAt; }
+    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
     public LocalDateTime getUpdatedAt() { return updatedAt; }
-
-    public static Builder builder() {
-        return new Builder();
-    }
-
-    public static class Builder {
-        private Long id;
-        private String key;
-        private String name;
-        private Long userId;
-        private Boolean enabled;
-        private LocalDateTime expiresAt;
-        private LocalDateTime createdAt;
-        private LocalDateTime updatedAt;
-
-        public Builder id(Long id) { this.id = id; return this; }
-        public Builder key(String key) { this.key = key; return this; }
-        public Builder name(String name) { this.name = name; return this; }
-        public Builder userId(Long userId) { this.userId = userId; return this; }
-        public Builder enabled(Boolean enabled) { this.enabled = enabled; return this; }
-        public Builder expiresAt(LocalDateTime expiresAt) { this.expiresAt = expiresAt; return this; }
-        public Builder createdAt(LocalDateTime createdAt) { this.createdAt = createdAt; return this; }
-        public Builder updatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; return this; }
-
-        public ApiKey build() {
-            return new ApiKey(this);
-        }
-    }
+    public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
 }

@@ -1,43 +1,68 @@
 package com.halfhex.fluffy.entity;
 
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
+
 import java.time.LocalDateTime;
 
-public final class GatewayService {
+@TableName("gateway_service")
+public class GatewayService {
 
-    private final Long id;
-    private final String name;
-    private final String baseUrl;
-    private final String healthCheckUrl;
-    private final Integer healthCheckInterval;
-    private final Integer maxConnections;
-    private final Integer timeoutMs;
-    private final Boolean deleted;
-    private final LocalDateTime createdAt;
-    private final LocalDateTime updatedAt;
+    @TableId(type = IdType.AUTO)
+    private Long id;
 
-    private GatewayService(Builder builder) {
-        this.id = builder.id;
-        this.name = builder.name;
-        this.baseUrl = builder.baseUrl;
-        this.healthCheckUrl = builder.healthCheckUrl;
-        this.healthCheckInterval = builder.healthCheckInterval;
-        this.maxConnections = builder.maxConnections;
-        this.timeoutMs = builder.timeoutMs;
-        this.deleted = builder.deleted;
-        this.createdAt = builder.createdAt;
-        this.updatedAt = builder.updatedAt;
+    @TableField("name")
+    private String name;
+
+    @TableField("base_url")
+    private String baseUrl;
+
+    @TableField("health_check_url")
+    private String healthCheckUrl;
+
+    @TableField("health_check_interval")
+    private Integer healthCheckInterval;
+
+    @TableField("max_connections")
+    private Integer maxConnections;
+
+    @TableField("timeout_ms")
+    private Integer timeoutMs;
+
+    @TableField("deleted")
+    private Boolean deleted;
+
+    @TableField("created_at")
+    private LocalDateTime createdAt;
+
+    @TableField("updated_at")
+    private LocalDateTime updatedAt;
+
+    public GatewayService() {
     }
 
     public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
     public String getName() { return name; }
+    public void setName(String name) { this.name = name; }
     public String getBaseUrl() { return baseUrl; }
+    public void setBaseUrl(String baseUrl) { this.baseUrl = baseUrl; }
     public String getHealthCheckUrl() { return healthCheckUrl; }
+    public void setHealthCheckUrl(String healthCheckUrl) { this.healthCheckUrl = healthCheckUrl; }
     public Integer getHealthCheckInterval() { return healthCheckInterval; }
+    public void setHealthCheckInterval(Integer healthCheckInterval) { this.healthCheckInterval = healthCheckInterval; }
     public Integer getMaxConnections() { return maxConnections; }
+    public void setMaxConnections(Integer maxConnections) { this.maxConnections = maxConnections; }
     public Integer getTimeoutMs() { return timeoutMs; }
+    public void setTimeoutMs(Integer timeoutMs) { this.timeoutMs = timeoutMs; }
     public Boolean getDeleted() { return deleted; }
+    public void setDeleted(Boolean deleted) { this.deleted = deleted; }
     public LocalDateTime getCreatedAt() { return createdAt; }
+    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
     public LocalDateTime getUpdatedAt() { return updatedAt; }
+    public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
 
     public static Builder builder() {
         return new Builder();
@@ -67,7 +92,18 @@ public final class GatewayService {
         public Builder updatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; return this; }
 
         public GatewayService build() {
-            return new GatewayService(this);
+            GatewayService service = new GatewayService();
+            service.id = this.id;
+            service.name = this.name;
+            service.baseUrl = this.baseUrl;
+            service.healthCheckUrl = this.healthCheckUrl;
+            service.healthCheckInterval = this.healthCheckInterval;
+            service.maxConnections = this.maxConnections;
+            service.timeoutMs = this.timeoutMs;
+            service.deleted = this.deleted;
+            service.createdAt = this.createdAt;
+            service.updatedAt = this.updatedAt;
+            return service;
         }
     }
 }

@@ -1,67 +1,81 @@
 package com.halfhex.fluffy.entity;
 
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
+
 import java.time.LocalDateTime;
 
-public final class RateLimitRule {
+@TableName("rate_limit_rule")
+public class RateLimitRule {
 
-    public enum LimitType {
-        IP, USERNAME, GLOBAL
-    }
+    @TableId(type = IdType.AUTO)
+    private Long id;
 
-    private final Long id;
-    private final Long routeId;
-    private final LimitType limitType;
-    private final Integer maxRequests;
-    private final Integer windowSeconds;
-    private final Boolean enabled;
-    private final LocalDateTime createdAt;
-    private final LocalDateTime updatedAt;
+    @TableField("name")
+    private String name;
 
-    private RateLimitRule(Builder builder) {
-        this.id = builder.id;
-        this.routeId = builder.routeId;
-        this.limitType = builder.limitType;
-        this.maxRequests = builder.maxRequests;
-        this.windowSeconds = builder.windowSeconds;
-        this.enabled = builder.enabled;
-        this.createdAt = builder.createdAt;
-        this.updatedAt = builder.updatedAt;
+    @TableField("route_id")
+    private Long routeId;
+
+    @TableField("service_id")
+    private Long serviceId;
+
+    @TableField("limit_type")
+    private String limitType;
+
+    @TableField("max_requests")
+    private Integer maxRequests;
+
+    @TableField("requests_per_minute")
+    private Integer requestsPerMinute;
+
+    @TableField("requests_per_hour")
+    private Integer requestsPerHour;
+
+    @TableField("requests_per_day")
+    private Integer requestsPerDay;
+
+    @TableField("burst_size")
+    private Integer burstSize;
+
+    @TableField("deleted")
+    private Boolean deleted;
+
+    @TableField("created_at")
+    private LocalDateTime createdAt;
+
+    @TableField("updated_at")
+    private LocalDateTime updatedAt;
+
+    public RateLimitRule() {
     }
 
     public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+    public String getName() { return name; }
+    public void setName(String name) { this.name = name; }
     public Long getRouteId() { return routeId; }
-    public LimitType getLimitType() { return limitType; }
+    public void setRouteId(Long routeId) { this.routeId = routeId; }
+    public Long getServiceId() { return serviceId; }
+    public void setServiceId(Long serviceId) { this.serviceId = serviceId; }
+    public String getLimitType() { return limitType; }
+    public void setLimitType(String limitType) { this.limitType = limitType; }
     public Integer getMaxRequests() { return maxRequests; }
-    public Integer getWindowSeconds() { return windowSeconds; }
-    public Boolean getEnabled() { return enabled; }
+    public void setMaxRequests(Integer maxRequests) { this.maxRequests = maxRequests; }
+    public Integer getRequestsPerMinute() { return requestsPerMinute; }
+    public void setRequestsPerMinute(Integer requestsPerMinute) { this.requestsPerMinute = requestsPerMinute; }
+    public Integer getRequestsPerHour() { return requestsPerHour; }
+    public void setRequestsPerHour(Integer requestsPerHour) { this.requestsPerHour = requestsPerHour; }
+    public Integer getRequestsPerDay() { return requestsPerDay; }
+    public void setRequestsPerDay(Integer requestsPerDay) { this.requestsPerDay = requestsPerDay; }
+    public Integer getBurstSize() { return burstSize; }
+    public void setBurstSize(Integer burstSize) { this.burstSize = burstSize; }
+    public Boolean getDeleted() { return deleted; }
+    public void setDeleted(Boolean deleted) { this.deleted = deleted; }
     public LocalDateTime getCreatedAt() { return createdAt; }
+    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
     public LocalDateTime getUpdatedAt() { return updatedAt; }
-
-    public static Builder builder() {
-        return new Builder();
-    }
-
-    public static class Builder {
-        private Long id;
-        private Long routeId;
-        private LimitType limitType;
-        private Integer maxRequests;
-        private Integer windowSeconds;
-        private Boolean enabled;
-        private LocalDateTime createdAt;
-        private LocalDateTime updatedAt;
-
-        public Builder id(Long id) { this.id = id; return this; }
-        public Builder routeId(Long routeId) { this.routeId = routeId; return this; }
-        public Builder limitType(LimitType limitType) { this.limitType = limitType; return this; }
-        public Builder maxRequests(Integer maxRequests) { this.maxRequests = maxRequests; return this; }
-        public Builder windowSeconds(Integer windowSeconds) { this.windowSeconds = windowSeconds; return this; }
-        public Builder enabled(Boolean enabled) { this.enabled = enabled; return this; }
-        public Builder createdAt(LocalDateTime createdAt) { this.createdAt = createdAt; return this; }
-        public Builder updatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; return this; }
-
-        public RateLimitRule build() {
-            return new RateLimitRule(this);
-        }
-    }
+    public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
 }

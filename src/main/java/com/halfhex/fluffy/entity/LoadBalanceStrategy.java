@@ -1,57 +1,56 @@
 package com.halfhex.fluffy.entity;
 
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
+
 import java.time.LocalDateTime;
 
-public final class LoadBalanceStrategy {
+@TableName("load_balance_strategy")
+public class LoadBalanceStrategy {
 
-    public enum StrategyType {
-        ROUND_ROBIN, RANDOM, CONSISTENT_HASH
-    }
+    @TableId(type = IdType.AUTO)
+    private Long id;
 
-    private final Long id;
-    private final Long serviceId;
-    private final StrategyType strategyType;
-    private final Boolean enabled;
-    private final LocalDateTime createdAt;
-    private final LocalDateTime updatedAt;
+    @TableField("service_id")
+    private Long serviceId;
 
-    private LoadBalanceStrategy(Builder builder) {
-        this.id = builder.id;
-        this.serviceId = builder.serviceId;
-        this.strategyType = builder.strategyType;
-        this.enabled = builder.enabled;
-        this.createdAt = builder.createdAt;
-        this.updatedAt = builder.updatedAt;
+    @TableField("name")
+    private String name;
+
+    @TableField("algorithm")
+    private String algorithm;
+
+    @TableField("config")
+    private String config;
+
+    @TableField("enabled")
+    private Boolean enabled;
+
+    @TableField("created_at")
+    private LocalDateTime createdAt;
+
+    @TableField("updated_at")
+    private LocalDateTime updatedAt;
+
+    public LoadBalanceStrategy() {
     }
 
     public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
     public Long getServiceId() { return serviceId; }
-    public StrategyType getStrategyType() { return strategyType; }
+    public void setServiceId(Long serviceId) { this.serviceId = serviceId; }
+    public String getName() { return name; }
+    public void setName(String name) { this.name = name; }
+    public String getAlgorithm() { return algorithm; }
+    public void setAlgorithm(String algorithm) { this.algorithm = algorithm; }
+    public String getConfig() { return config; }
+    public void setConfig(String config) { this.config = config; }
     public Boolean getEnabled() { return enabled; }
+    public void setEnabled(Boolean enabled) { this.enabled = enabled; }
     public LocalDateTime getCreatedAt() { return createdAt; }
+    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
     public LocalDateTime getUpdatedAt() { return updatedAt; }
-
-    public static Builder builder() {
-        return new Builder();
-    }
-
-    public static class Builder {
-        private Long id;
-        private Long serviceId;
-        private StrategyType strategyType;
-        private Boolean enabled;
-        private LocalDateTime createdAt;
-        private LocalDateTime updatedAt;
-
-        public Builder id(Long id) { this.id = id; return this; }
-        public Builder serviceId(Long serviceId) { this.serviceId = serviceId; return this; }
-        public Builder strategyType(StrategyType strategyType) { this.strategyType = strategyType; return this; }
-        public Builder enabled(Boolean enabled) { this.enabled = enabled; return this; }
-        public Builder createdAt(LocalDateTime createdAt) { this.createdAt = createdAt; return this; }
-        public Builder updatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; return this; }
-
-        public LoadBalanceStrategy build() {
-            return new LoadBalanceStrategy(this);
-        }
-    }
+    public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
 }
