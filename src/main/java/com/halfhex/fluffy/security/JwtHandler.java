@@ -17,6 +17,14 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
+/**
+ * Handles JWT token generation and validation.
+ *
+ * <p>Loads JWT configuration from database and provides token validation
+ * with proper error handling for expired and invalid tokens.
+ *
+ * @author fluffy
+ */
 public class JwtHandler {
 
     private final Vertx vertx;

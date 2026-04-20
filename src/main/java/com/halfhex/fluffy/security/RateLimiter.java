@@ -6,6 +6,14 @@ import io.vertx.redis.client.Command;
 import io.vertx.redis.client.Request;
 import io.vertx.redis.client.Response;
 
+/**
+ * Redis-based rate limiter using sliding window algorithm.
+ *
+ * <p>Implements multi-tier rate limiting with separate limits for
+ * minute, hour, and day windows.
+ *
+ * @author fluffy
+ */
 public class RateLimiter {
     private final Redis redis;
 

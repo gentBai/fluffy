@@ -7,6 +7,15 @@ import io.vertx.redis.client.Redis;
 import io.vertx.sqlclient.Pool;
 import io.vertx.sqlclient.Tuple;
 
+/**
+ * Checks blacklist and whitelist for access control.
+ *
+ * <p>Provides access control by checking multiple target types:
+ * IP address, user ID, and API key. Results are cached in Redis
+ * for 60 seconds to reduce database load.
+ *
+ * @author fluffy
+ */
 public class SecurityChecker {
 
     private static final String CACHE_PREFIX = "security:";

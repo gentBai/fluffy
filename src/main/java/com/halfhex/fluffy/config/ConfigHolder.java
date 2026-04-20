@@ -4,10 +4,26 @@ import io.vertx.core.json.JsonObject;
 
 public class ConfigHolder {
 
+  private static ConfigHolder instance;
   private final JsonObject config;
 
-  public ConfigHolder(JsonObject config) {
+  private ConfigHolder(JsonObject config) {
     this.config = config;
+  }
+
+  public static void init(JsonObject config) {
+    instance = new ConfigHolder(config);
+  }
+
+  public static ConfigHolder getInstance() {
+    if (instance == null) {
+      throw new IllegalStateException("ConfigHolder not initialized");
+    }
+    return instance;
+  }
+
+  public static boolean isInitialized() {
+    return instance != null;
   }
 
   public JsonObject getDbConfig() {
@@ -44,6 +60,19 @@ public class ConfigHolder {
 
   public String getDbPassword() {
     return getDbConfig().getString("password", "");
+  }
+
+  public String getDatabaseUrl() {
+    return String.format("jdbc:mysql://%s:%d/%s?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true",
+        getDbHost(), getDbPort(), getDbDatabase());
+  }
+
+  public String getDatabaseUsername() {
+    return getDbUsername();
+  }
+
+  public String getDatabasePassword() {
+    return getDbPassword();
   }
 
   public int getDbMaxPoolSize() {
