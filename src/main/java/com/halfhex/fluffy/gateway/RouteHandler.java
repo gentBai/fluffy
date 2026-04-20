@@ -1,7 +1,6 @@
 package com.halfhex.fluffy.gateway;
 
 import com.halfhex.fluffy.entity.GatewayRoute;
-import com.halfhex.fluffy.entity.GatewayRoute.HttpMethod;
 import com.halfhex.fluffy.repository.RouteRepository;
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
@@ -13,6 +12,23 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 
+/**
+ * Handles route matching and caching for the API gateway.
+ *
+ * <p>RouteHandler maintains an in-memory cache of enabled routes and provides
+ * pattern-based matching for incoming requests. It supports:
+ * <ul>
+ *   <li>Exact path matching</li>
+ *   <li>Single wildcard matching (/*)</li>
+ *   <li>Double wildcard matching (/**)</li>
+ *   <li>Priority-based route selection</li>
+ * </ul>
+ *
+ * <p>The cache is automatically refreshed periodically (every 30 seconds)
+ * and can be manually refreshed via {@link #refreshCache()}.
+ *
+ * @author fluffy
+ */
 public class RouteHandler {
 
   private final RouteRepository routeRepository;
@@ -91,8 +107,8 @@ public class RouteHandler {
 
     for (GatewayRoute route : routes) {
       if (pathMatches(route.getPathPattern(), path)) {
-        HttpMethod routeMethod = route.getHttpMethod();
-        boolean methodMatches = routeMethod == null || routeMethod.name().equalsIgnoreCase(method);
+        String routeMethod = route.getHttpMethod();
+        boolean methodMatches = routeMethod == null || routeMethod.equalsIgnoreCase(method);
 
         if (methodMatches) {
           int priority = route.getPriority() != null ? route.getPriority() : 0;

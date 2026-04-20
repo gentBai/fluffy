@@ -14,6 +14,18 @@ import io.vertx.ext.web.client.WebClient;
 import java.util.HashSet;
 import java.util.Set;
 
+/**
+ * Forwards HTTP requests to backend service instances.
+ *
+ * <p>Handles the actual HTTP forwarding with proper header handling:
+ * <ul>
+ *   <li>Adds X-Forwarded-* headers for proxy information</li>
+ *   <li>Strips hop-by-hop headers that should not be forwarded</li>
+ *   <li>Sets a 5-second timeout for all requests</li>
+ * </ul>
+ *
+ * @author fluffy
+ */
 public class BackendClient {
 
     private static final Set<String> HOP_BY_HOP_HEADERS = new HashSet<>();

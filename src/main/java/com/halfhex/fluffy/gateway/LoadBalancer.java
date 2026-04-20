@@ -13,6 +13,18 @@ import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
+/**
+ * Load balancer for selecting healthy backend service instances.
+ *
+ * <p>Supports multiple load balancing strategies:
+ * <ul>
+ *   <li>ROUND_ROBIN - Cycles through instances in order</li>
+ *   <li>RANDOM - Randomly selects an instance based on weight</li>
+ *   <li>CONSISTENT_HASH - Hashes requests for session affinity</li>
+ * </ul>
+ *
+ * @author fluffy
+ */
 public class LoadBalancer {
 
     private static final String STRATEGY_ROUND_ROBIN = "ROUND_ROBIN";
