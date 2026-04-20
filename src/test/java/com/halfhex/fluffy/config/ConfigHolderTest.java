@@ -10,7 +10,8 @@ class ConfigHolderTest {
   @Test
   void testConfigHolder_fullConfig() {
     JsonObject config = createFullConfig();
-    ConfigHolder holder = new ConfigHolder(config);
+    ConfigHolder.init(config);
+    ConfigHolder holder = ConfigHolder.getInstance();
 
     assertEquals("localhost", holder.getDbHost());
     assertEquals(3306, holder.getDbPort());
@@ -37,7 +38,8 @@ class ConfigHolderTest {
   @Test
   void testConfigHolder_defaults() {
     JsonObject emptyConfig = new JsonObject();
-    ConfigHolder holder = new ConfigHolder(emptyConfig);
+    ConfigHolder.init(emptyConfig);
+    ConfigHolder holder = ConfigHolder.getInstance();
 
     assertEquals("localhost", holder.getDbHost());
     assertEquals(3306, holder.getDbPort());
@@ -62,7 +64,8 @@ class ConfigHolderTest {
   @Test
   void testConfigHolder_getSubConfigs() {
     JsonObject config = createFullConfig();
-    ConfigHolder holder = new ConfigHolder(config);
+    ConfigHolder.init(config);
+    ConfigHolder holder = ConfigHolder.getInstance();
 
     assertNotNull(holder.getDbConfig());
     assertEquals("localhost", holder.getDbConfig().getString("host"));

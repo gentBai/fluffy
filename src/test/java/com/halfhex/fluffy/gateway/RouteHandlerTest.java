@@ -1,7 +1,6 @@
 package com.halfhex.fluffy.gateway;
 
 import com.halfhex.fluffy.entity.GatewayRoute;
-import com.halfhex.fluffy.entity.GatewayRoute.HttpMethod;
 import com.halfhex.fluffy.repository.RouteRepository;
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
@@ -38,7 +37,7 @@ class RouteHandlerTest {
 
   @Test
   void testMatchRoute_exactMatch() {
-    GatewayRoute route = createRoute(1L, "/api/users", HttpMethod.GET, 1);
+    GatewayRoute route = createRoute(1L, "/api/users", "GET", 1);
     doAnswer(invocation -> {
       Promise<List<GatewayRoute>> p = invocation.getArgument(0);
       p.complete(Collections.singletonList(route));
@@ -53,7 +52,7 @@ class RouteHandlerTest {
 
   @Test
   void testMatchRoute_wildcardSuffixMatch() {
-    GatewayRoute route = createRoute(1L, "/api/*", HttpMethod.GET, 1);
+    GatewayRoute route = createRoute(1L, "/api/*", "GET", 1);
     doAnswer(invocation -> {
       Promise<List<GatewayRoute>> p = invocation.getArgument(0);
       p.complete(Collections.singletonList(route));
@@ -68,7 +67,7 @@ class RouteHandlerTest {
 
   @Test
   void testMatchRoute_doubleWildcardMatch() {
-    GatewayRoute route = createRoute(1L, "/api/**", HttpMethod.GET, 1);
+    GatewayRoute route = createRoute(1L, "/api/**", "GET", 1);
     doAnswer(invocation -> {
       Promise<List<GatewayRoute>> p = invocation.getArgument(0);
       p.complete(Collections.singletonList(route));
@@ -83,7 +82,7 @@ class RouteHandlerTest {
 
   @Test
   void testMatchRoute_methodMismatch_returnsNull() {
-    GatewayRoute route = createRoute(1L, "/api/users", HttpMethod.GET, 1);
+    GatewayRoute route = createRoute(1L, "/api/users", "GET", 1);
     doAnswer(invocation -> {
       Promise<List<GatewayRoute>> p = invocation.getArgument(0);
       p.complete(Collections.singletonList(route));
@@ -98,8 +97,8 @@ class RouteHandlerTest {
 
   @Test
   void testMatchRoute_highestPriorityWins() {
-    GatewayRoute lowPriority = createRoute(1L, "/api/*", HttpMethod.GET, 1);
-    GatewayRoute highPriority = createRoute(2L, "/api/*", HttpMethod.GET, 10);
+    GatewayRoute lowPriority = createRoute(1L, "/api/*", "GET", 1);
+    GatewayRoute highPriority = createRoute(2L, "/api/*", "GET", 10);
     List<GatewayRoute> routes = Arrays.asList(lowPriority, highPriority);
 
     doAnswer(invocation -> {
@@ -130,7 +129,7 @@ class RouteHandlerTest {
 
   @Test
   void testRefreshCache() {
-    GatewayRoute route = createRoute(1L, "/api/test", HttpMethod.GET, 1);
+    GatewayRoute route = createRoute(1L, "/api/test", "GET", 1);
     doAnswer(invocation -> {
       Promise<List<GatewayRoute>> p = invocation.getArgument(0);
       p.complete(Collections.singletonList(route));
@@ -141,7 +140,7 @@ class RouteHandlerTest {
     assertNotNull(future);
   }
 
-  private GatewayRoute createRoute(Long id, String path, HttpMethod method, int priority) {
+  private GatewayRoute createRoute(Long id, String path, String method, int priority) {
     return GatewayRoute.builder()
       .id(id)
       .name("Test Route")

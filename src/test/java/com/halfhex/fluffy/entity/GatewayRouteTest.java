@@ -15,7 +15,7 @@ class GatewayRouteTest {
       .id(1L)
       .name("Test Route")
       .pathPattern("/api/users")
-      .httpMethod(GatewayRoute.HttpMethod.GET)
+      .httpMethod("GET")
       .serviceId(10L)
       .authRequired(true)
       .rateLimitEnabled(true)
@@ -28,7 +28,7 @@ class GatewayRouteTest {
     assertEquals(1L, route.getId());
     assertEquals("Test Route", route.getName());
     assertEquals("/api/users", route.getPathPattern());
-    assertEquals(GatewayRoute.HttpMethod.GET, route.getHttpMethod());
+    assertEquals("GET", route.getHttpMethod());
     assertEquals(10L, route.getServiceId());
     assertTrue(route.getAuthRequired());
     assertTrue(route.getRateLimitEnabled());
@@ -71,7 +71,7 @@ class GatewayRouteTest {
       .id(1L)
       .name("Route 1")
       .pathPattern("/test")
-      .httpMethod(GatewayRoute.HttpMethod.POST)
+      .httpMethod("POST")
       .serviceId(1L)
       .authRequired(false)
       .rateLimitEnabled(false)
