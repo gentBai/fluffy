@@ -194,6 +194,9 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
+### OpenCode ###
+.opencode/
+
 ### Java ###
 *.class
 *.jar
