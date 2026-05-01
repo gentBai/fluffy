@@ -5,15 +5,13 @@ import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.auth.PubSecKeyOptions;
+import io.vertx.ext.auth.authentication.TokenCredentials;
 import io.vertx.ext.auth.jwt.JWTAuth;
 import io.vertx.ext.auth.jwt.JWTAuthOptions;
-import io.vertx.mysqlclient.MySQLPool;
+import io.vertx.sqlclient.Pool;
 import io.vertx.sqlclient.Row;
-import io.vertx.sqlclient.SqlConnection;
-import io.vertx.sqlclient.Tuple;
 
 import java.time.Instant;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -28,14 +26,14 @@ import java.util.concurrent.atomic.AtomicReference;
 public class JwtHandler {
 
     private final Vertx vertx;
-    private final MySQLPool mysqlPool;
+    private final Pool mysqlPool;
     private final AtomicReference<JwtConfig> cachedConfig = new AtomicReference<>();
     private final AtomicReference<JWTAuth> jwtAuth = new AtomicReference<>();
     private Long refreshTimerId;
 
     private static final long DEFAULT_REFRESH_INTERVAL_MS = 60000;
 
-    public JwtHandler(Vertx vertx, MySQLPool mysqlPool) {
+    public JwtHandler(Vertx vertx, Pool mysqlPool) {
         this.vertx = vertx;
         this.mysqlPool = mysqlPool;
     }
@@ -51,37 +49,27 @@ public class JwtHandler {
 
     private Future<JwtConfig> loadConfig() {
         Promise<JwtConfig> promise = Promise.promise();
-        mysqlPool.getConnection(conn -> {
-            if (conn.failed()) {
-                promise.fail(conn.cause());
-                return;
-            }
-            SqlConnection connection = conn.result();
-            connection.preparedQuery("SELECT * FROM jwt_config WHERE enabled = 1 LIMIT 1")
-                .execute(ar -> {
-                    if (ar.failed()) {
-                        promise.fail(ar.cause());
-                        connection.close();
-                        return;
-                    }
-                    Row row = ar.result().iterator().next();
-                    if (row == null) {
-                        promise.fail("No enabled jwt_config found");
-                        connection.close();
-                        return;
-                    }
-                    JwtConfig config = JwtConfig.builder()
-                        .id(row.getLong("id"))
-                        .issuer(row.getString("issuer"))
-                        .secretKey(row.getString("secret_key"))
-                        .algorithm(row.getString("algorithm"))
-                        .accessTokenTtlSec(row.getInteger("access_token_ttl_sec"))
-                        .refreshTokenTtlSec(row.getInteger("refresh_token_ttl_sec"))
-                        .enabled(row.getBoolean("enabled"))
-                        .build();
-                    promise.complete(config);
-                    connection.close();
-                });
+        mysqlPool.withConnection(conn ->
+          conn.preparedQuery("SELECT * FROM jwt_config WHERE enabled = 1 LIMIT 1")
+            .execute()
+            .map(rowSet -> {
+              if (!rowSet.iterator().hasNext()) {
+                throw new RuntimeException("No enabled jwt_config found");
+              }
+              Row row = rowSet.iterator().next();
+              return JwtConfig.builder()
+                .id(row.getLong("id"))
+                .issuer(row.getString("issuer"))
+                .secretKey(row.getString("secret_key"))
+                .algorithm(row.getString("algorithm"))
+                .accessTokenTtlSec(row.getInteger("access_token_ttl_sec"))
+                .refreshTokenTtlSec(row.getInteger("refresh_token_ttl_sec"))
+                .enabled(row.getBoolean("enabled"))
+                .build();
+            })
+        ).onComplete(ar -> {
+          if (ar.succeeded()) promise.complete(ar.result());
+          else promise.fail(ar.cause());
         });
         return promise.future();
     }
@@ -113,7 +101,7 @@ public class JwtHandler {
             promise.fail("JWT auth not initialized");
             return promise.future();
         }
-        auth.authenticate(new JsonObject().put("token", token))
+        auth.authenticate(new TokenCredentials(token))
             .onSuccess(user -> {
                 JsonObject principal = user.principal();
                 Claims claims = new Claims(

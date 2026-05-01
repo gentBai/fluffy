@@ -16,10 +16,8 @@
     <maven-surefire-plugin.version>2.22.2</maven-surefire-plugin.version>
     <exec-maven-plugin.version>1.5.0</exec-maven-plugin.version>
 
-    <vertx.version>4.0.0.Beta3</vertx.version>
-    <junit-jupiter.version>5.4.0</junit-jupiter.version>
-    <mybatis-plus.version>3.5.5</mybatis-plus.version>
-    <hikaricp.version>5.1.0</hikaricp.version>
+    <vertx.version>5.0.10</vertx.version>
+    <junit-jupiter.version>5.10.0</junit-jupiter.version>
 
     <main.verticle>com.halfhex.fluffy.MainVerticle</main.verticle>
   </properties>
@@ -71,21 +69,8 @@
       <artifactId>vertx-redis-client</artifactId>
     </dependency>
 
-    <dependency>
-      <groupId>com.baomidou</groupId>
-      <artifactId>mybatis-plus-boot-starter</artifactId>
-      <version>${mybatis-plus.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>com.zaxxer</groupId>
-      <artifactId>HikariCP</artifactId>
-      <version>${hikaricp.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>mysql</groupId>
-      <artifactId>mysql-connector-java</artifactId>
-      <version>8.0.33</version>
-    </dependency>
+
+
 
     <dependency>
       <groupId>io.vertx</groupId>

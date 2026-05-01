@@ -1,50 +1,33 @@
 package com.halfhex.fluffy.entity;
 
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableField;
-import com.baomidou.mybatisplus.annotation.TableId;
-import com.baomidou.mybatisplus.annotation.TableName;
-
 import java.time.LocalDateTime;
 
-@TableName("service_instance")
 public class ServiceInstance {
 
     public enum Status {
         HEALTHY, UNHEALTHY, DOWN
     }
 
-    @TableId(type = IdType.AUTO)
     private Long id;
 
-    @TableField("service_id")
     private Long serviceId;
 
-    @TableField("host")
     private String host;
 
-    @TableField("port")
     private Integer port;
 
-    @TableField("weight")
     private Integer weight;
 
-    @TableField("healthy")
     private Boolean healthy;
 
-    @TableField("enabled")
     private Boolean enabled;
 
-    @TableField("last_heartbeat")
     private LocalDateTime lastHeartbeat;
 
-    @TableField("deleted")
     private Boolean deleted;
 
-    @TableField("created_at")
     private LocalDateTime createdAt;
 
-    @TableField("updated_at")
     private LocalDateTime updatedAt;
 
     public ServiceInstance() {

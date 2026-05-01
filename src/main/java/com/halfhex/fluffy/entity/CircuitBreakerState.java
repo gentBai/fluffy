@@ -1,43 +1,25 @@
 package com.halfhex.fluffy.entity;
 
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableField;
-import com.baomidou.mybatisplus.annotation.TableId;
-import com.baomidou.mybatisplus.annotation.TableName;
-
 import java.time.LocalDateTime;
 
-@TableName("circuit_breaker_config")
 public class CircuitBreakerState {
 
-    @TableId(type = IdType.AUTO)
     private Long id;
 
-    @TableField("service_id")
     private Long serviceId;
 
-    @TableField("instance_id")
     private Long instanceId;
 
-    @TableField("enabled")
-    private Boolean enabled;
+    private String state;
 
-    @TableField("failure_threshold")
-    private Integer failureThreshold;
+    private Integer failureCount;
 
-    @TableField("success_threshold")
-    private Integer successThreshold;
+    private Integer successCount;
 
-    @TableField("timeout_seconds")
-    private Integer timeoutSeconds;
+    private LocalDateTime lastFailureTime;
 
-    @TableField("reset_seconds")
-    private Integer resetSeconds;
+    private LocalDateTime lastStateChange;
 
-    @TableField("created_at")
-    private LocalDateTime createdAt;
-
-    @TableField("updated_at")
     private LocalDateTime updatedAt;
 
     public CircuitBreakerState() {
@@ -49,18 +31,16 @@ public class CircuitBreakerState {
     public void setServiceId(Long serviceId) { this.serviceId = serviceId; }
     public Long getInstanceId() { return instanceId; }
     public void setInstanceId(Long instanceId) { this.instanceId = instanceId; }
-    public Boolean getEnabled() { return enabled; }
-    public void setEnabled(Boolean enabled) { this.enabled = enabled; }
-    public Integer getFailureThreshold() { return failureThreshold; }
-    public void setFailureThreshold(Integer failureThreshold) { this.failureThreshold = failureThreshold; }
-    public Integer getSuccessThreshold() { return successThreshold; }
-    public void setSuccessThreshold(Integer successThreshold) { this.successThreshold = successThreshold; }
-    public Integer getTimeoutSeconds() { return timeoutSeconds; }
-    public void setTimeoutSeconds(Integer timeoutSeconds) { this.timeoutSeconds = timeoutSeconds; }
-    public Integer getResetSeconds() { return resetSeconds; }
-    public void setResetSeconds(Integer resetSeconds) { this.resetSeconds = resetSeconds; }
-    public LocalDateTime getCreatedAt() { return createdAt; }
-    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+    public String getState() { return state; }
+    public void setState(String state) { this.state = state; }
+    public Integer getFailureCount() { return failureCount; }
+    public void setFailureCount(Integer failureCount) { this.failureCount = failureCount; }
+    public Integer getSuccessCount() { return successCount; }
+    public void setSuccessCount(Integer successCount) { this.successCount = successCount; }
+    public LocalDateTime getLastFailureTime() { return lastFailureTime; }
+    public void setLastFailureTime(LocalDateTime lastFailureTime) { this.lastFailureTime = lastFailureTime; }
+    public LocalDateTime getLastStateChange() { return lastStateChange; }
+    public void setLastStateChange(LocalDateTime lastStateChange) { this.lastStateChange = lastStateChange; }
     public LocalDateTime getUpdatedAt() { return updatedAt; }
     public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
 }

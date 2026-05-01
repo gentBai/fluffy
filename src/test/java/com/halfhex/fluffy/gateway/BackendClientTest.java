@@ -28,15 +28,13 @@ class BackendClientTest {
   }
 
   @Test
-  void testHopByHopHeaders_isMutable() throws Exception {
+  void testHopByHopHeaders_isImmutable() throws Exception {
     Field field = BackendClient.class.getDeclaredField("HOP_BY_HOP_HEADERS");
     field.setAccessible(true);
     @SuppressWarnings("unchecked")
     Set<String> headers = (Set<String>) field.get(null);
 
-    int originalSize = headers.size();
-    headers.add("x-custom-header");
-    assertEquals(originalSize + 1, headers.size());
-    headers.remove("x-custom-header");
+    assertThrows(UnsupportedOperationException.class, () -> headers.add("x-custom-header"));
+    assertThrows(UnsupportedOperationException.class, () -> headers.remove("connection"));
   }
 }

@@ -1,34 +1,21 @@
 package com.halfhex.fluffy.entity;
 
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableField;
-import com.baomidou.mybatisplus.annotation.TableId;
-import com.baomidou.mybatisplus.annotation.TableName;
-
 import java.time.LocalDateTime;
 
-@TableName("whitelist")
 public class Whitelist {
 
-    @TableId(type = IdType.AUTO)
     private Long id;
 
-    @TableField("target_type")
     private String targetType;
 
-    @TableField("target_value")
     private String targetValue;
 
-    @TableField("description")
     private String description;
 
-    @TableField("deleted")
     private Boolean deleted;
 
-    @TableField("created_at")
     private LocalDateTime createdAt;
 
-    @TableField("updated_at")
     private LocalDateTime updatedAt;
 
     public Whitelist() {

@@ -1,14 +1,12 @@
 package com.halfhex.fluffy.security;
 
 import io.vertx.core.Future;
-import io.vertx.core.Promise;
 import io.vertx.core.json.JsonObject;
-import io.vertx.mysqlclient.MySQLPool;
+import io.vertx.sqlclient.Pool;
 import io.vertx.redis.client.Redis;
 import io.vertx.redis.client.Command;
 import io.vertx.redis.client.Request;
 import io.vertx.sqlclient.Row;
-import io.vertx.sqlclient.SqlConnection;
 import io.vertx.sqlclient.Tuple;
 
 import java.time.LocalDateTime;
@@ -18,10 +16,10 @@ public class ApiKeyHandler {
     private static final String CACHE_PREFIX = "apikey:";
     private static final long CACHE_TTL_SECONDS = 300;
 
-    private final MySQLPool mysqlPool;
+    private final Pool mysqlPool;
     private final Redis redis;
 
-    public ApiKeyHandler(MySQLPool mysqlPool, Redis redis) {
+    public ApiKeyHandler(Pool mysqlPool, Redis redis) {
         this.mysqlPool = mysqlPool;
         this.redis = redis;
     }
@@ -44,38 +42,23 @@ public class ApiKeyHandler {
     }
 
     private Future<ApiKey> validateFromDatabase(String keyValue) {
-        Promise<ApiKey> promise = Promise.promise();
-
-        mysqlPool.getConnection(conn -> {
-            if (conn.failed()) {
-                promise.fail(conn.cause());
-                return;
+        return mysqlPool.withConnection(conn ->
+          conn.preparedQuery(
+              "SELECT id, key_value, name, user_id, route_ids, rate_limit_per_minute, deleted, expires_at " +
+              "FROM api_key WHERE key_value = ?"
+          ).execute(Tuple.of(keyValue))
+          .map(rowSet -> {
+            if (!rowSet.iterator().hasNext()) {
+              throw new RuntimeException("API key not found");
             }
-            SqlConnection connection = conn.result();
-            connection.preparedQuery(
-                    "SELECT id, key_value, name, user_id, route_ids, rate_limit_per_minute, deleted, expires_at " +
-                    "FROM api_key WHERE key_value = ?")
-                .execute(Tuple.of(keyValue), ar -> {
-                    connection.close();
-                    if (ar.failed()) {
-                        promise.fail(ar.cause());
-                        return;
-                    }
-                    Row row = ar.result().iterator().next();
-                    if (row == null) {
-                        promise.fail("API key not found");
-                        return;
-                    }
-                    ApiKey apiKey = mapRowToApiKey(row);
-                    if (!apiKey.isValid()) {
-                        promise.fail("API key is invalid, expired, or disabled");
-                        return;
-                    }
-                    promise.complete(apiKey);
-                });
-        });
-
-        return promise.future();
+            Row row = rowSet.iterator().next();
+            ApiKey apiKey = mapRowToApiKey(row);
+            if (!apiKey.isValid()) {
+              throw new RuntimeException("API key is invalid, expired, or disabled");
+            }
+            return apiKey;
+          })
+        );
     }
 
     private Future<Void> cacheApiKey(String cacheKey, ApiKey apiKey) {
@@ -95,6 +78,7 @@ public class ApiKeyHandler {
             .routeIds(json.getJsonArray("routeIds"))
             .rateLimitPerMinute(json.getInteger("rateLimitPerMinute"))
             .deleted(json.getBoolean("deleted"))
+            .active(json.getBoolean("active"))
             .expiresAt(json.getString("expiresAt") != null ?
                 LocalDateTime.parse(json.getString("expiresAt")) : null)
             .build();
@@ -122,6 +106,7 @@ public class ApiKeyHandler {
             .routeIds(row.getJsonArray("route_ids"))
             .rateLimitPerMinute(row.getInteger("rate_limit_per_minute"))
             .deleted(row.getBoolean("deleted"))
+            .active(row.getBoolean("active"))
             .expiresAt(row.getLocalDateTime("expires_at"))
             .build();
     }

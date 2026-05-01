@@ -4,7 +4,8 @@ import io.vertx.core.json.JsonObject;
 
 public class ConfigHolder {
 
-  private static ConfigHolder instance;
+  private static volatile ConfigHolder instance;
+  private static final Object LOCK = new Object();
   private final JsonObject config;
 
   private ConfigHolder(JsonObject config) {
@@ -12,7 +13,9 @@ public class ConfigHolder {
   }
 
   public static void init(JsonObject config) {
-    instance = new ConfigHolder(config);
+    synchronized (LOCK) {
+      instance = new ConfigHolder(config);
+    }
   }
 
   public static ConfigHolder getInstance() {
@@ -60,19 +63,6 @@ public class ConfigHolder {
 
   public String getDbPassword() {
     return getDbConfig().getString("password", "");
-  }
-
-  public String getDatabaseUrl() {
-    return String.format("jdbc:mysql://%s:%d/%s?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true",
-        getDbHost(), getDbPort(), getDbDatabase());
-  }
-
-  public String getDatabaseUsername() {
-    return getDbUsername();
-  }
-
-  public String getDatabasePassword() {
-    return getDbPassword();
   }
 
   public int getDbMaxPoolSize() {

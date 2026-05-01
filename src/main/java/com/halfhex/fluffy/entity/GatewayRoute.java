@@ -1,50 +1,33 @@
 package com.halfhex.fluffy.entity;
 
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableField;
-import com.baomidou.mybatisplus.annotation.TableId;
-import com.baomidou.mybatisplus.annotation.TableName;
-
 import java.time.LocalDateTime;
 
-@TableName("gateway_route")
 public class GatewayRoute {
 
     public enum HttpMethod {
         GET, POST, PUT, DELETE, PATCH, OPTIONS, HEAD
     }
 
-    @TableId(type = IdType.AUTO)
     private Long id;
 
-    @TableField("name")
     private String name;
 
-    @TableField("path_pattern")
     private String pathPattern;
 
-    @TableField("http_method")
     private String httpMethod;
 
-    @TableField("service_id")
     private Long serviceId;
 
-    @TableField("auth_required")
     private Boolean authRequired;
 
-    @TableField("rate_limit_enabled")
     private Boolean rateLimitEnabled;
 
-    @TableField("priority")
     private Integer priority;
 
-    @TableField("deleted")
     private Boolean deleted;
 
-    @TableField("created_at")
     private LocalDateTime createdAt;
 
-    @TableField("updated_at")
     private LocalDateTime updatedAt;
 
     public GatewayRoute() {

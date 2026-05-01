@@ -1,60 +1,43 @@
 package com.halfhex.fluffy.gateway;
 
 import com.halfhex.fluffy.entity.GatewayRoute;
-import com.halfhex.fluffy.repository.RouteRepository;
+import com.halfhex.fluffy.repository.GatewayRouteRepository;
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
-import io.vertx.mysqlclient.MySQLPool;
+import io.vertx.sqlclient.Pool;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicReference;
 
-/**
- * Handles route matching and caching for the API gateway.
- *
- * <p>RouteHandler maintains an in-memory cache of enabled routes and provides
- * pattern-based matching for incoming requests. It supports:
- * <ul>
- *   <li>Exact path matching</li>
- *   <li>Single wildcard matching (/*)</li>
- *   <li>Double wildcard matching (/**)</li>
- *   <li>Priority-based route selection</li>
- * </ul>
- *
- * <p>The cache is automatically refreshed periodically (every 30 seconds)
- * and can be manually refreshed via {@link #refreshCache()}.
- *
- * @author fluffy
- */
 public class RouteHandler {
 
-  private final RouteRepository routeRepository;
+  private final GatewayRouteRepository routeRepository;
   private final Vertx vertx;
-  private final List<GatewayRoute> routeCache;
-  private final AtomicLong cacheVersion;
+  private final AtomicReference<List<GatewayRoute>> routeCache;
+  private final AtomicReference<Long> cacheVersion;
   private long periodicTimerId;
 
-  public RouteHandler(MySQLPool mysqlPool, Vertx vertx) {
-    this.routeRepository = new RouteRepository(mysqlPool);
+  public RouteHandler(Pool mysqlPool, Vertx vertx) {
+    this.routeRepository = new GatewayRouteRepository(mysqlPool);
     this.vertx = vertx;
-    this.routeCache = Collections.synchronizedList(new ArrayList<>());
-    this.cacheVersion = new AtomicLong(0);
+    this.routeCache = new AtomicReference<>(Collections.emptyList());
+    this.cacheVersion = new AtomicReference<>(0L);
   }
 
-  public RouteHandler(RouteRepository routeRepository, Vertx vertx) {
+  public RouteHandler(GatewayRouteRepository routeRepository, Vertx vertx) {
     this.routeRepository = routeRepository;
     this.vertx = vertx;
-    this.routeCache = Collections.synchronizedList(new ArrayList<>());
-    this.cacheVersion = new AtomicLong(0);
+    this.routeCache = new AtomicReference<>(Collections.emptyList());
+    this.cacheVersion = new AtomicReference<>(0L);
   }
 
   public Future<GatewayRoute> matchRoute(String path, String method) {
     Promise<GatewayRoute> promise = Promise.promise();
 
-    List<GatewayRoute> currentCache = new ArrayList<>(routeCache);
+    List<GatewayRoute> currentCache = routeCache.get();
 
     GatewayRoute matched = findBestMatch(currentCache, path, method);
 
@@ -63,7 +46,7 @@ public class RouteHandler {
     } else {
       refreshCache().onComplete(ar -> {
         if (ar.succeeded()) {
-          GatewayRoute newMatched = findBestMatch(new ArrayList<>(routeCache), path, method);
+          GatewayRoute newMatched = findBestMatch(routeCache.get(), path, method);
           promise.complete(newMatched);
         } else {
           promise.fail(ar.cause());
@@ -77,12 +60,11 @@ public class RouteHandler {
   public Future<Void> refreshCache() {
     Promise<List<GatewayRoute>> repoPromise = Promise.promise();
 
-    routeRepository.findAllEnabled(repoPromise);
+    routeRepository.findAll(repoPromise);
 
     return repoPromise.future().map(routes -> {
-      routeCache.clear();
-      routeCache.addAll(routes);
-      cacheVersion.incrementAndGet();
+      routeCache.set(new ArrayList<>(routes));
+      cacheVersion.updateAndGet(v -> v + 1);
       return null;
     });
   }
@@ -108,7 +90,7 @@ public class RouteHandler {
     for (GatewayRoute route : routes) {
       if (pathMatches(route.getPathPattern(), path)) {
         String routeMethod = route.getHttpMethod();
-        boolean methodMatches = routeMethod == null || routeMethod.equalsIgnoreCase(method);
+        boolean methodMatches = routeMethod == null || routeMethod.equalsIgnoreCase(method) || "*".equals(routeMethod);
 
         if (methodMatches) {
           int priority = route.getPriority() != null ? route.getPriority() : 0;
@@ -132,14 +114,14 @@ public class RouteHandler {
       return true;
     }
 
-    if (pattern.endsWith("/*")) {
-      String prefix = pattern.substring(0, pattern.length() - 2);
-      return path.startsWith(prefix) || path.equals(prefix.substring(0, prefix.length() - 1));
-    }
-
     if (pattern.endsWith("/**")) {
       String prefix = pattern.substring(0, pattern.length() - 3);
       return path.startsWith(prefix);
+    }
+
+    if (pattern.endsWith("/*")) {
+      String prefix = pattern.substring(0, pattern.length() - 2);
+      return path.startsWith(prefix + "/") || path.equals(prefix);
     }
 
     if (pattern.contains("*")) {

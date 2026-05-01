@@ -1,37 +1,23 @@
 package com.halfhex.fluffy.entity;
 
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableField;
-import com.baomidou.mybatisplus.annotation.TableId;
-import com.baomidou.mybatisplus.annotation.TableName;
-
 import java.time.LocalDateTime;
 
-@TableName("load_balance_strategy")
 public class LoadBalanceStrategy {
 
-    @TableId(type = IdType.AUTO)
     private Long id;
 
-    @TableField("service_id")
     private Long serviceId;
 
-    @TableField("name")
     private String name;
 
-    @TableField("algorithm")
     private String algorithm;
 
-    @TableField("config")
     private String config;
 
-    @TableField("enabled")
     private Boolean enabled;
 
-    @TableField("created_at")
     private LocalDateTime createdAt;
 
-    @TableField("updated_at")
     private LocalDateTime updatedAt;
 
     public LoadBalanceStrategy() {

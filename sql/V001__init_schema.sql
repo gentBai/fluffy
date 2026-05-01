@@ -43,26 +43,29 @@ CREATE TABLE IF NOT EXISTS service_instance (
     host VARCHAR(255) NOT NULL DEFAULT '',
     port INT NOT NULL DEFAULT 80,
     weight INT NOT NULL DEFAULT 100,
-    status VARCHAR(20) NOT NULL DEFAULT 'HEALTHY',
-    active TINYINT(1) NOT NULL DEFAULT 1,
+    healthy TINYINT(1) NOT NULL DEFAULT 1,
+    enabled TINYINT(1) NOT NULL DEFAULT 1,
+    last_heartbeat DATETIME DEFAULT NULL,
     deleted TINYINT(1) NOT NULL DEFAULT 0,
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     INDEX idx_service (service_id),
-    INDEX idx_status (status),
-    INDEX idx_active (active),
+    INDEX idx_healthy (healthy),
+    INDEX idx_enabled (enabled),
     INDEX idx_deleted (deleted)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS load_balance_strategy (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    route_id BIGINT NOT NULL DEFAULT 0,
-    strategy_type VARCHAR(20) NOT NULL DEFAULT 'ROUND_ROBIN',
+    service_id BIGINT NOT NULL DEFAULT 0,
+    name VARCHAR(100) NOT NULL DEFAULT '',
+    algorithm VARCHAR(20) NOT NULL DEFAULT 'ROUND_ROBIN',
     config JSON DEFAULT NULL,
+    enabled TINYINT(1) NOT NULL DEFAULT 1,
     deleted TINYINT(1) NOT NULL DEFAULT 0,
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    UNIQUE INDEX idx_route_deleted (route_id, deleted)
+    UNIQUE INDEX idx_service_deleted (service_id, deleted)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- =====================================================
@@ -76,6 +79,7 @@ CREATE TABLE IF NOT EXISTS api_key (
     user_id BIGINT DEFAULT NULL,
     route_ids JSON DEFAULT NULL,
     rate_limit_per_minute INT NOT NULL DEFAULT 1000,
+    active TINYINT(1) NOT NULL DEFAULT 1,
     deleted TINYINT(1) NOT NULL DEFAULT 0,
     expires_at DATETIME DEFAULT NULL,
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -108,12 +112,15 @@ CREATE TABLE IF NOT EXISTS rate_limit_rule (
     requests_per_hour INT DEFAULT NULL,
     requests_per_day INT DEFAULT NULL,
     route_id BIGINT DEFAULT NULL,
+    service_id BIGINT DEFAULT NULL,
+    max_requests INT DEFAULT NULL,
     burst_size INT NOT NULL DEFAULT 10,
     deleted TINYINT(1) NOT NULL DEFAULT 0,
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     INDEX idx_limit_type (limit_type),
     INDEX idx_route (route_id),
+    INDEX idx_service (service_id),
     INDEX idx_deleted (deleted)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -128,7 +135,9 @@ CREATE TABLE IF NOT EXISTS blacklist (
     reason VARCHAR(500) DEFAULT '',
     expires_at DATETIME DEFAULT NULL,
     created_by VARCHAR(100) DEFAULT '',
+    deleted TINYINT(1) NOT NULL DEFAULT 0,
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     INDEX idx_target (target_type, target_value),
     INDEX idx_expires (expires_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -138,7 +147,9 @@ CREATE TABLE IF NOT EXISTS whitelist (
     target_type VARCHAR(20) NOT NULL DEFAULT 'IP',
     target_value VARCHAR(255) NOT NULL DEFAULT '',
     description VARCHAR(500) DEFAULT '',
+    deleted TINYINT(1) NOT NULL DEFAULT 0,
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     UNIQUE INDEX idx_target_unique (target_type, target_value)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
