@@ -205,3 +205,4 @@ yarn-error.log*
 ### OS ###
 Icon
 .DS_Store
+.claude

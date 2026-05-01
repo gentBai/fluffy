@@ -2,7 +2,7 @@
 
 ## 概述
 
-`CircuitBreakerRepository` 管理服务断路器状态，实现服务熔断保护。
+`CircuitBreakerStateRepository` 管理服务断路器状态持久化。运行时熔断逻辑尚未接入请求处理流程。
 
 ## 状态机
 
@@ -30,7 +30,7 @@ stateDiagram-v2
 ## 核心接口
 
 ```java
-public class CircuitBreakerRepository {
+public class CircuitBreakerStateRepository {
 
     /**
      * 获取服务断路器状态
@@ -81,5 +81,5 @@ public class CircuitBreakerRepository {
 
 ## 源码
 
-- `src/main/java/com/halfhex/fluffy/repository/CircuitBreakerRepository.java`
+- `src/main/java/com/halfhex/fluffy/repository/CircuitBreakerStateRepository.java`
 - `src/main/java/com/halfhex/fluffy/entity/CircuitBreakerState.java`

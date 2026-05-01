@@ -110,4 +110,4 @@ private Instance selectRandom(List<Instance> instances) {
 
 - `src/main/java/com/halfhex/fluffy/gateway/LoadBalancer.java`
 - `src/main/java/com/halfhex/fluffy/entity/ServiceInstance.java`
-- `src/main/java/com/halfhex/fluffy/repository/InstanceRepository.java`
+- `src/main/java/com/halfhex/fluffy/repository/ServiceInstanceRepository.java`

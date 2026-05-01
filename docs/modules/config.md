@@ -2,7 +2,7 @@
 
 ## 概述
 
-配置管理采用单例模式，通过 `ConfigHolder` 统一管理配置。
+配置管理采用单例模式，通过 `ConfigHolder` 统一管理配置。数据库连接使用 Vert.x 响应式 MySQL 客户端（`vertx-mysql-client`），Redis 使用 `vertx-redis-client`。
 
 ## 配置结构
 
@@ -14,7 +14,7 @@
     "database": "fluffy",
     "username": "root",
     "password": "",
-    "maxPoolSize": 10,
+    "maxPoolSize": 20,
     "connectionTimeout": 30000
   },
   "redis": {
@@ -39,13 +39,13 @@
 ```java
 public class ConfigHolder {
 
-    private static ConfigHolder instance;
+    private static volatile ConfigHolder instance;
 
     private ConfigHolder(JsonObject config) {
         this.config = config;
     }
 
-    public static void init(JsonObject config) {
+    public static synchronized void init(JsonObject config) {
         instance = new ConfigHolder(config);
     }
 
@@ -71,6 +71,8 @@ public class ConfigHolder {
 }
 ```
 
+`ConfigHolder` 使用 **volatile + synchronized** 双重检查模式实现线程安全的懒加载。
+
 ## Verticle 初始化顺序
 
 ```mermaid
@@ -78,49 +80,47 @@ sequenceDiagram
     participant App as Application
     participant CV as ConfigVerticle
     participant CH as ConfigHolder
-    participant MV as MybatisPlusVerticle
+    participant MV as MainVerticle
 
     App->>CV: deployVerticle
     CV->>CH: init(config)
+    CV->>CV: create MySQL Pool + Redis Client
+    CV->>CV: publish to SharedData (CONFIG_HOLDER_KEY, MYSQL_CLIENT_KEY, REDIS_CLIENT_KEY)
     CV-->>App: deployment complete
     App->>MV: deployVerticle
-    Note over MV: SqlSessionFactory ready
+    MV->>SharedData: retrieve MySQL Pool & Redis Client
+    Note over MV: HTTP servers ready
 ```
 
 ## 数据源配置
 
-使用 HikariCP 连接池：
+使用 Vert.x 响应式 MySQL 客户端：
 
 ```java
-public class HikariCPConfig {
+MySQLConnectOptions connectOptions = new MySQLConnectOptions()
+    .setPort(config.getDbPort())
+    .setHost(config.getDbHost())
+    .setDatabase(config.getDbDatabase())
+    .setUser(config.getDbUsername())
+    .setPassword(config.getDbPassword());
 
-    public static DataSource createDataSource(ConfigHolder config) {
-        HikariConfig HikariConfig = new HikariConfig();
-        HikariConfig.setJdbcUrl(config.getDatabaseUrl());
-        HikariConfig.setUsername(config.getDatabaseUsername());
-        HikariConfig.setPassword(config.getDatabasePassword());
-        HikariConfig.setMaximumPoolSize(config.getDbMaxPoolSize());
-        HikariConfig.setConnectionTimeout(config.getDbConnectionTimeout());
-        return new HikariDataSource(hikariConfig);
-    }
-}
+PoolOptions poolOptions = new PoolOptions()
+    .setMaxSize(config.getDbMaxPoolSize());
+
+Pool pool = MySQLPool.pool(vertx, connectOptions, poolOptions);
 ```
 
-## MyBatis-Plus 配置
+## 共享数据
 
-```java
-public class MybatisPlusConfig {
+`ConfigVerticle` 通过 Vert.x SharedData 发布以下资源：
 
-    public static SqlSessionFactory createSqlSessionFactory(DataSource dataSource) {
-        MybatisSqlSessionFactoryBuilder builder = new MybatisSqlSessionFactoryBuilder();
-        return builder.build(builder.build(new Resources().getResourceAsStream("mybatis-config.xml")));
-    }
-}
-```
+| Key | 类型 | 说明 |
+|-----|------|------|
+| `CONFIG_HOLDER_KEY` | `ConfigHolder` | 配置单例 |
+| `MYSQL_CLIENT_KEY` | `Pool` | MySQL 连接池 |
+| `REDIS_CLIENT_KEY` | `Redis` | Redis 客户端 |
 
 ## 源码
 
 - `src/main/java/com/halfhex/fluffy/config/ConfigHolder.java`
 - `src/main/java/com/halfhex/fluffy/config/ConfigVerticle.java`
-- `src/main/java/com/halfhex/fluffy/config/HikariCPConfig.java`
-- `src/main/java/com/halfhex/fluffy/config/MybatisPlusConfig.java`

@@ -111,4 +111,4 @@ VALUES (1, 'localhost', 8080, 100, true, true);
 
 - `src/main/java/com/halfhex/fluffy/gateway/RouteHandler.java`
 - `src/main/java/com/halfhex/fluffy/entity/GatewayRoute.java`
-- `src/main/java/com/halfhex/fluffy/repository/RouteRepository.java`
+- `src/main/java/com/halfhex/fluffy/repository/GatewayRouteRepository.java`

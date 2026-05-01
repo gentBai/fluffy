@@ -44,7 +44,9 @@ if count >= limit then
     return {0, 0}
 end
 
-redis.call('ZADD', key, now, now .. '-' .. math.random())
+local time = redis.call('TIME')
+local micro = time[1] * 1000000 + time[2]
+redis.call('ZADD', key, now, micro)
 redis.call('EXPIRE', key, window + 1)
 return {1, limit - count - 1}
 ```

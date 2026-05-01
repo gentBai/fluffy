@@ -93,7 +93,7 @@ public enum SecurityCheckResult {
 | id | Long | 主键 |
 | targetType | String | 目标类型 |
 | targetValue | String | 目标值 |
-| reason | String | 添加原因 |
+| description | String | 描述说明 |
 | expiresAt | DateTime | 过期时间（可选） |
 
 ## 源码

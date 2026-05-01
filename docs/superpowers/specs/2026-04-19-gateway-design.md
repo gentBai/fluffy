@@ -28,7 +28,8 @@ Fluffy is a Vert.x-based API Gateway with an admin dashboard for configuration m
 | auth_required | BOOLEAN | DEFAULT FALSE | 是否需要认证 |
 | rate_limit_enabled | BOOLEAN | DEFAULT FALSE | 是否启用限流 |
 | priority | INT | DEFAULT 0 | 优先级 |
-| enabled | BOOLEAN | DEFAULT TRUE | 是否启用 |
+| deleted | BOOLEAN | DEFAULT FALSE | 软删除 |
+| deleted | BOOLEAN | DEFAULT FALSE | 软删除 |
 | created_at | TIMESTAMP | DEFAULT CURRENT_TIMESTAMP | 创建时间 |
 | updated_at | TIMESTAMP | ON UPDATE CURRENT_TIMESTAMP | 更新时间 |
 
@@ -42,7 +43,7 @@ Fluffy is a Vert.x-based API Gateway with an admin dashboard for configuration m
 | health_check_interval | INT | DEFAULT 30 | 检查间隔(秒) |
 | max_connections | INT | DEFAULT 200 | 最大连接数 |
 | timeout_ms | INT | DEFAULT 5000 | 超时毫秒 |
-| enabled | BOOLEAN | DEFAULT TRUE | 是否启用 |
+| deleted | BOOLEAN | DEFAULT FALSE | 软删除 |
 | created_at | TIMESTAMP | DEFAULT CURRENT_TIMESTAMP | 创建时间 |
 | updated_at | TIMESTAMP | ON UPDATE CURRENT_TIMESTAMP | 更新时间 |
 
@@ -54,8 +55,8 @@ Fluffy is a Vert.x-based API Gateway with an admin dashboard for configuration m
 | host | VARCHAR(255) | NOT NULL | 主机地址 |
 | port | INT | NOT NULL | 端口 |
 | weight | INT | DEFAULT 100 | 权重(1-100) |
-| status | ENUM | DEFAULT 'HEALTHY' | HEALTHY/UNHEALTHY/DOWN |
-| active | BOOLEAN | DEFAULT TRUE | 是否活跃 |
+| healthy | BOOLEAN | DEFAULT TRUE | 是否健康 |
+| deleted | BOOLEAN | DEFAULT FALSE | 软删除 |
 | created_at | TIMESTAMP | DEFAULT CURRENT_TIMESTAMP | 创建时间 |
 | updated_at | TIMESTAMP | ON UPDATE CURRENT_TIMESTAMP | 更新时间 |
 
@@ -80,7 +81,8 @@ Fluffy is a Vert.x-based API Gateway with an admin dashboard for configuration m
 | user_id | BIGINT | | 关联用户ID |
 | route_ids | JSON | | 可访问路由IDs |
 | rate_limit_per_minute | INT | DEFAULT 1000 | 每分钟限流 |
-| enabled | BOOLEAN | DEFAULT TRUE | 是否启用 |
+| active | BOOLEAN | DEFAULT TRUE | 是否启用 |
+| deleted | BOOLEAN | DEFAULT FALSE | 软删除 |
 | expires_at | TIMESTAMP | | 过期时间 |
 | created_at | TIMESTAMP | DEFAULT CURRENT_TIMESTAMP | 创建时间 |
 | updated_at | TIMESTAMP | ON UPDATE CURRENT_TIMESTAMP | 更新时间 |
@@ -94,7 +96,7 @@ Fluffy is a Vert.x-based API Gateway with an admin dashboard for configuration m
 | algorithm | VARCHAR(20) | DEFAULT 'HS256' | 算法 |
 | access_token_ttl_sec | INT | DEFAULT 3600 | Access Token过期秒 |
 | refresh_token_ttl_sec | INT | DEFAULT 86400 | Refresh Token过期秒 |
-| enabled | BOOLEAN | DEFAULT TRUE | 是否启用 |
+| deleted | BOOLEAN | DEFAULT FALSE | 软删除 |
 | created_at | TIMESTAMP | DEFAULT CURRENT_TIMESTAMP | 创建时间 |
 | updated_at | TIMESTAMP | ON UPDATE CURRENT_TIMESTAMP | 更新时间 |
 
@@ -110,8 +112,10 @@ Fluffy is a Vert.x-based API Gateway with an admin dashboard for configuration m
 | requests_per_hour | INT | | 每小时请求数 |
 | requests_per_day | INT | | 每天请求数 |
 | route_id | BIGINT | FK | 关联路由(空=全局) |
+| service_id | BIGINT | FK | 关联服务(空=全局) |
+| max_requests | INT | | 最大请求数 |
 | burst_size | INT | DEFAULT 10 | 突发容量 |
-| enabled | BOOLEAN | DEFAULT TRUE | 是否启用 |
+| deleted | BOOLEAN | DEFAULT FALSE | 软删除 |
 | created_at | TIMESTAMP | DEFAULT CURRENT_TIMESTAMP | 创建时间 |
 | updated_at | TIMESTAMP | ON UPDATE CURRENT_TIMESTAMP | 更新时间 |
 
@@ -125,8 +129,9 @@ Fluffy is a Vert.x-based API Gateway with an admin dashboard for configuration m
 | target_value | VARCHAR(255) | NOT NULL | 目标值 |
 | reason | VARCHAR(500) | | 封禁原因 |
 | expires_at | TIMESTAMP | | 解封时间(空=永久) |
-| created_by | VARCHAR(100) | | 操作人 |
+| deleted | BOOLEAN | DEFAULT FALSE | 软删除 |
 | created_at | TIMESTAMP | DEFAULT CURRENT_TIMESTAMP | 创建时间 |
+| updated_at | TIMESTAMP | ON UPDATE CURRENT_TIMESTAMP | 更新时间 |
 
 #### whitelist (白名单)
 | Column | Type | Constraints | Description |
@@ -135,7 +140,9 @@ Fluffy is a Vert.x-based API Gateway with an admin dashboard for configuration m
 | target_type | ENUM | NOT NULL | IP/USER/API_KEY |
 | target_value | VARCHAR(255) | NOT NULL | 目标值 |
 | description | VARCHAR(500) | | 描述 |
+| deleted | BOOLEAN | DEFAULT FALSE | 软删除 |
 | created_at | TIMESTAMP | DEFAULT CURRENT_TIMESTAMP | 创建时间 |
+| updated_at | TIMESTAMP | ON UPDATE CURRENT_TIMESTAMP | 更新时间 |
 
 ### 2.5 Logging Tables
 
@@ -157,7 +164,7 @@ Fluffy is a Vert.x-based API Gateway with an admin dashboard for configuration m
 | service_id | BIGINT | FK | 转发的服务ID |
 | instance_id | BIGINT | FK | 转发的实例ID |
 | error_message | TEXT | | 错误信息 |
-| created_at | TIMESTAMP | DEFAULT CURRENT_TIMESTAMP, INDEX | 请求时间 |
+| created_at | DATETIME | DEFAULT CURRENT_TIMESTAMP | 请求时间 |
 
 #### circuit_breaker_state (断路器状态)
 | Column | Type | Constraints | Description |
@@ -177,46 +184,36 @@ Fluffy is a Vert.x-based API Gateway with an admin dashboard for configuration m
 ### 3.1 Verticle Structure
 
 ```
-MainVerticle (入口)
-├── RouterVerticle (路由配置管理)
-│   ├── RouteManager (路由表管理)
-│   └── ServiceDiscovery (服务发现)
-├── ProxyVerticle (请求代理)
-│   ├── RouteHandler (路由匹配)
-│   ├── LoadBalancer (负载均衡)
-│   ├── BackendClient (后端调用)
-│   └── CircuitBreaker (断路器)
-├── AuthVerticle (认证鉴权)
-│   ├── JwtHandler (JWT验证)
-│   ├── ApiKeyHandler (API Key验证)
-│   └── PermissionChecker (权限检查)
-├── RateLimitVerticle (限流)
-│   ├── IpRateLimiter (IP限流)
-│   ├── UserRateLimiter (用户限流)
-│   └── GlobalRateLimiter (全局限流)
-├── SecurityVerticle (黑白名单)
-│   ├── BlacklistChecker (黑名单)
-│   └── WhitelistChecker (白名单)
-├── LogVerticle (日志监控)
-│   ├── AccessLogger (访问日志)
-│   ├── MetricsCollector (指标收集)
-│   └── AlertManager (告警管理)
-└── AdminVerticle (管理后台API)
-    ├── RouteAdminAPI
-    ├── ServiceAdminAPI
-    ├── AuthAdminAPI
-    ├── RateLimitAdminAPI
-    └── LogQueryAPI
+Application (入口)
+├── ConfigVerticle (配置初始化)
+│   ├── ConfigHolder (配置单例)
+│   ├── MySQL Pool (vertx-mysql-client)
+│   ├── Redis Client (vertx-redis-client)
+│   └── SharedData (发布共享资源)
+└── MainVerticle (主 Verticle)
+    ├── HTTP Server (8888) — 网关请求处理
+    │   ├── SecurityChecker (黑白名单)
+    │   ├── RouteHandler (路由匹配 + 缓存)
+    │   ├── JwtHandler / ApiKeyHandler (认证)
+    │   ├── RateLimiter (Redis 滑动窗口限流)
+    │   ├── LoadBalancer (加权轮询/随机)
+    │   ├── BackendClient (WebClient 转发)
+    │   └── AccessLogRepository (异步日志写入)
+    └── Admin HTTP Server (8889) — 管理后台 API
+        └── AdminApiRouter (CRUD + Dashboard 统计)
 ```
 
 ### 3.2 Request Flow
 
 ```
-请求 → SecurityVerticle (黑白名单)
-     → AuthVerticle (JWT/API Key验证)
-     → RateLimitVerticle (限流检查)
-     → ProxyVerticle (路由+负载+断路)
-     → LogVerticle (记录日志)
+请求 → MainVerticle (8888)
+     → SecurityChecker (IP/User/API Key 黑白名单检查)
+     → RouteHandler (路径匹配，缓存优先)
+     → Auth (JWT Bearer Token 或 X-API-Key)
+     → RateLimiter (分钟/小时/天三级滑动窗口)
+     → LoadBalancer (加权轮询/随机，过滤 healthy+enabled)
+     → BackendClient (WebClient 转发，保留请求体)
+     → AccessLog (异步写入 MariaDB)
      → 响应
 ```
 

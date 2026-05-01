@@ -69,8 +69,8 @@ graph TB
 | 核心框架 | Vert.x | 5.0.10 |
 | 数据库 | MySQL/MariaDB | 8.x |
 | 缓存 | Redis | 6.x |
-| ORM | MyBatis-Plus | 3.5.5 |
-| 连接池 | HikariCP | 5.1.0 |
+| 数据库客户端 | vertx-mysql-client | 5.0.10 |
+| 缓存客户端 | vertx-redis-client | 5.0.10 |
 | 构建工具 | Maven | 3.x |
 | Java | OpenJDK | 11 |
 
@@ -94,7 +94,7 @@ graph TB
 - [x] 黑白名单 - IP、用户、API Key 维度访问控制
 - [x] 限流 - 基于 Redis 的滑动窗口限流
 - [x] 断路器 - 服务熔断保护
-- [ ] 日志监控 - 请求日志记录
+- [x] 日志监控 - 异步访问日志写入数据库
 - [ ] 聚合 - 多个服务响应聚合
 - [ ] 金丝雀发布 - 灰度流量控制
 
@@ -109,7 +109,7 @@ graph TB
 
 ### 配置
 
-创建 `config.json` 配置文件：
+创建 `src/main/resources/application.conf` 配置文件（JSON 格式）：
 
 ```json
 {

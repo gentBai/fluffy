@@ -62,14 +62,14 @@ sequenceDiagram
 public class JwtHandler {
 
     /**
-     * 验证 JWT Token
+     * 验证 JWT Token（使用 TokenCredentials）
      */
-    public Future<UserInfo> verifyToken(String token);
+    public Future<JwtHandler.UserInfo> validateToken(String token);
 
     /**
      * 生成 JWT Token
      */
-    public String generateToken(UserInfo userInfo);
+    public Future<String> generateToken(Long userId, Map<String, String> claims);
 }
 
 public class ApiKeyHandler {
