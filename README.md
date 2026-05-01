@@ -1,6 +1,8 @@
 # Fluffy API Gateway
 
-Fluffy 取自Harry Potter中三头犬，是一个基于 Vert.x 5.0 的高性能 API 网关。
+> Fluffy 取自Harry Potter中三头犬，是一个基于 Vert.x 5.0 的高性能 API 网关。
+>
+> 本项目仅供个人学习使用，不保证稳定性，且不提供任何技术支持
 
 ## 系统架构
 
