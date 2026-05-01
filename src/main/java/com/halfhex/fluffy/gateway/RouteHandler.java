@@ -121,7 +121,14 @@ public class RouteHandler {
 
     if (pattern.endsWith("/*")) {
       String prefix = pattern.substring(0, pattern.length() - 2);
-      return path.startsWith(prefix + "/") || path.equals(prefix);
+      if (path.equals(prefix)) {
+        return true;
+      }
+      if (!path.startsWith(prefix + "/")) {
+        return false;
+      }
+      String remaining = path.substring(prefix.length() + 1);
+      return !remaining.contains("/");
     }
 
     if (pattern.contains("*")) {

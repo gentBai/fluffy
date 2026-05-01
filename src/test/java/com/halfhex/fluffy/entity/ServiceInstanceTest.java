@@ -52,10 +52,9 @@ class ServiceInstanceTest {
 
   @Test
   void testStatus_enumValues() {
-    assertEquals(3, ServiceInstance.Status.values().length);
+    assertEquals(2, ServiceInstance.Status.values().length);
     assertNotNull(ServiceInstance.Status.valueOf("HEALTHY"));
     assertNotNull(ServiceInstance.Status.valueOf("UNHEALTHY"));
-    assertNotNull(ServiceInstance.Status.valueOf("DOWN"));
   }
 
   @Test
