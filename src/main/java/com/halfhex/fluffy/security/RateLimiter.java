@@ -83,9 +83,15 @@ public class RateLimiter {
                 if (!minuteResult.isAllowed()) {
                     return Future.succeededFuture(minuteResult);
                 }
+                if (rule.getRequestsPerHour() <= 0) {
+                    return Future.succeededFuture(minuteResult);
+                }
                 return isAllowed(key + ":hour", rule.getRequestsPerHour(), 3600)
                     .compose(hourResult -> {
                         if (!hourResult.isAllowed()) {
+                            return Future.succeededFuture(hourResult);
+                        }
+                        if (rule.getRequestsPerDay() <= 0) {
                             return Future.succeededFuture(hourResult);
                         }
                         return isAllowed(key + ":day", rule.getRequestsPerDay(), 86400);

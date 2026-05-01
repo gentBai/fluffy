@@ -10,10 +10,14 @@ import io.vertx.redis.client.Redis;
 import io.vertx.redis.client.RedisOptions;
 import io.vertx.sqlclient.Pool;
 import io.vertx.sqlclient.PoolOptions;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.nio.charset.StandardCharsets;
 
 public class ConfigVerticle extends AbstractVerticle {
+
+  private static final Logger logger = LoggerFactory.getLogger(ConfigVerticle.class);
 
   public static final String CONFIG_HOLDER_KEY = "config.holder";
   public static final String REDIS_CLIENT_KEY = "redis.client";
@@ -57,7 +61,7 @@ public class ConfigVerticle extends AbstractVerticle {
         localMap.put(REDIS_CLIENT_KEY, redisClient);
         localMap.put(MYSQL_CLIENT_KEY, mysqlPool);
 
-        System.out.println("ConfigVerticle started successfully");
+        logger.info("ConfigVerticle started successfully");
         startPromise.complete();
         return Future.succeededFuture();
       })

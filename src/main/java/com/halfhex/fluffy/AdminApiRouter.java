@@ -48,6 +48,10 @@ public class AdminApiRouter {
     registerWhitelistRoutes(router);
     registerLogRoutes(router);
 
+    router.get("/health").handler(ctx ->
+      ctx.json(new JsonObject().put("status", "UP").put("timestamp", java.time.Instant.now().toString()))
+    );
+
     router.errorHandler(404, ctx -> ctx.response().setStatusCode(404).end(jsonMessage("Not found")));
     router.errorHandler(500, ctx -> ctx.response().setStatusCode(500).end(jsonMessage("Internal Server Error")));
 

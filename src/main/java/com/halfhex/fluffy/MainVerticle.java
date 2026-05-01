@@ -23,10 +23,14 @@ import io.vertx.redis.client.Redis;
 import io.vertx.redis.client.RedisOptions;
 import io.vertx.sqlclient.Pool;
 import io.vertx.sqlclient.PoolOptions;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.nio.charset.StandardCharsets;
 
 public class MainVerticle extends AbstractVerticle {
+
+  private static final Logger logger = LoggerFactory.getLogger(MainVerticle.class);
 
   private Pool mysqlPool;
   private Redis redisClient;
@@ -123,7 +127,7 @@ public class MainVerticle extends AbstractVerticle {
     server.requestHandler(this::handleGatewayRequest);
     return server.listen(configHolder.getAppPort())
       .map(s -> {
-        System.out.println("Gateway server started on port " + s.actualPort());
+        logger.info("Gateway server started on port {}", s.actualPort());
         return null;
       });
   }
@@ -134,7 +138,7 @@ public class MainVerticle extends AbstractVerticle {
     server.requestHandler(adminRouter);
     return server.listen(configHolder.getAppAdminPort())
       .map(s -> {
-        System.out.println("Admin server started on port " + s.actualPort());
+        logger.info("Admin server started on port {}", s.actualPort());
         return null;
       });
   }
