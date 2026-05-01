@@ -28,7 +28,8 @@ public class RateLimiter {
         "if count >= limit then " +
         "  return {0, 0} " +
         "end " +
-        "redis.call('ZADD', key, now, now .. '-' .. math.random()) " +
+        "local time = redis.call('TIME') " +
+        "redis.call('ZADD', key, now, now .. '-' .. time[2] .. '-' .. math.random()) " +
         "redis.call('EXPIRE', key, window + 1) " +
         "return {1, limit - count - 1}";
 
