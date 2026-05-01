@@ -7,6 +7,8 @@ import com.halfhex.fluffy.entity.ServiceInstance;
 import com.halfhex.fluffy.gateway.BackendClient;
 import com.halfhex.fluffy.gateway.LoadBalancer;
 import com.halfhex.fluffy.gateway.RouteHandler;
+import com.halfhex.fluffy.entity.AccessLog;
+import com.halfhex.fluffy.repository.AccessLogRepository;
 import com.halfhex.fluffy.repository.RateLimitRuleRepository;
 import com.halfhex.fluffy.security.*;
 import io.vertx.core.AbstractVerticle;
@@ -144,7 +146,10 @@ public class MainVerticle extends AbstractVerticle {
   }
 
   private void handleGatewayRequest(HttpServerRequest req) {
+    long startTime = System.currentTimeMillis();
     String clientIp = req.remoteAddress() != null ? req.remoteAddress().host() : "unknown";
+    final GatewayRoute[] matchedRoute = new GatewayRoute[1];
+    final ServiceInstance[] selectedInstance = new ServiceInstance[1];
 
     securityChecker.checkAccess(clientIp, null, null)
       .compose(result -> {
@@ -157,27 +162,27 @@ public class MainVerticle extends AbstractVerticle {
         if (route == null) {
           return Future.failedFuture(new GatewayException(404, "Route not found"));
         }
-        return processRoute(req, route, clientIp);
+        matchedRoute[0] = route;
+        return processRoute(req, route, clientIp, selectedInstance);
       })
       .onComplete(ar -> {
+        int status = 200;
+        Throwable error = null;
         if (ar.failed()) {
-          Throwable cause = ar.cause();
-          int status = 500;
-          String message = "Internal Server Error";
-          if (cause instanceof GatewayException) {
-            status = ((GatewayException) cause).getStatusCode();
-            message = cause.getMessage();
-          } else if (cause.getMessage() != null) {
-            message = cause.getMessage();
+          error = ar.cause();
+          status = 500;
+          if (error instanceof GatewayException) {
+            status = ((GatewayException) error).getStatusCode();
           }
           if (!req.response().ended()) {
-            req.response().setStatusCode(status).end(message);
+            req.response().setStatusCode(status).end(error.getMessage());
           }
         }
+        logAccess(req, matchedRoute[0], selectedInstance[0], status, startTime, error);
       });
   }
 
-  private Future<Void> processRoute(HttpServerRequest req, GatewayRoute route, String clientIp) {
+  private Future<Void> processRoute(HttpServerRequest req, GatewayRoute route, String clientIp, ServiceInstance[] instanceHolder) {
     if (route.getServiceId() == null) {
       return Future.failedFuture(new GatewayException(503, "No upstream service configured"));
     }
@@ -190,7 +195,10 @@ public class MainVerticle extends AbstractVerticle {
     return authCheck
       .compose(v -> checkRateLimit(route, clientIp))
       .compose(v -> loadBalancer.selectInstance(route.getServiceId()))
-      .compose(instance -> backendClient.forward(req, instance, req.uri()))
+      .compose(instance -> {
+        instanceHolder[0] = instance;
+        return backendClient.forward(req, instance, req.uri());
+      })
       .compose(response -> {
         req.response().setStatusCode(response.statusCode());
         response.headers().forEach(header -> {
@@ -267,5 +275,33 @@ public class MainVerticle extends AbstractVerticle {
             return Future.succeededFuture();
           });
       });
+  }
+
+  private void logAccess(HttpServerRequest req, GatewayRoute route, ServiceInstance instance,
+                         int statusCode, long startTime, Throwable error) {
+    try {
+      long duration = System.currentTimeMillis() - startTime;
+      AccessLog log = new AccessLog();
+      log.setTraceId(java.util.UUID.randomUUID().toString().replace("-", "").substring(0, 16));
+      log.setRequestMethod(req.method().name());
+      log.setRequestPath(req.path());
+      log.setRequestQuery(req.query());
+      log.setResponseStatus(statusCode);
+      log.setResponseTimeMs((int) duration);
+      log.setClientIp(req.remoteAddress() != null ? req.remoteAddress().host() : "unknown");
+      log.setRouteId(route != null ? route.getId() : null);
+      log.setServiceId(route != null ? route.getServiceId() : null);
+      log.setInstanceId(instance != null ? instance.getId() : null);
+      if (error != null) {
+        log.setErrorMessage(error.getMessage());
+      }
+
+      AccessLogRepository repo = new AccessLogRepository(mysqlPool);
+      io.vertx.core.Promise<Void> p = io.vertx.core.Promise.promise();
+      repo.save(log, p);
+      p.future().onFailure(err -> logger.warn("Failed to write access log: {}", err.getMessage()));
+    } catch (Exception e) {
+      logger.warn("Access log creation failed: {}", e.getMessage());
+    }
   }
 }
