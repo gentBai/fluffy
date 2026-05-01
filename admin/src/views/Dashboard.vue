@@ -135,6 +135,7 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
+import { dashboardApi } from '../api'
 import {
   DataLine, Guide, Connection, Warning, Top, Bottom,
   Monitor, Bell, WarningFilled, SuccessFilled
@@ -150,21 +151,15 @@ const stats = ref({
 const serviceHealth = ref([])
 const alerts = ref([])
 
-onMounted(() => {
-  stats.value = {
-    totalRequests: 1234567,
-    activeRoutes: 15,
-    activeServices: 8,
-    errorRate: 0.5
+onMounted(async () => {
+  try {
+    const data = await dashboardApi.stats()
+    stats.value = data.stats || { totalRequests: 0, activeRoutes: 0, activeServices: 0, errorRate: 0 }
+    serviceHealth.value = data.serviceHealth || []
+    alerts.value = data.alerts || []
+  } catch (e) {
+    console.error('Failed to load dashboard stats', e)
   }
-  serviceHealth.value = [
-    { name: 'user-service', status: 'HEALTHY', instanceCount: 3 },
-    { name: 'order-service', status: 'HEALTHY', instanceCount: 2 },
-    { name: 'product-service', status: 'UNHEALTHY', instanceCount: 1 }
-  ]
-  alerts.value = [
-    { time: '2026-04-19 20:00:00', message: 'product-service 响应超时' }
-  ]
 })
 </script>
 

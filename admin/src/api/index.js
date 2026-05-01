@@ -84,4 +84,8 @@ export const logsApi = {
   export: (params) => api.get('/logs/export', { params, responseType: 'blob' })
 }
 
+export const dashboardApi = {
+  stats: () => api.get('/dashboard/stats')
+}
+
 export default api

@@ -47,6 +47,7 @@ public class AdminApiRouter {
     registerBlacklistRoutes(router);
     registerWhitelistRoutes(router);
     registerLogRoutes(router);
+    registerDashboardRoutes(router);
 
     router.get("/health").handler(ctx ->
       ctx.json(new JsonObject().put("status", "UP").put("timestamp", java.time.Instant.now().toString()))
@@ -589,5 +590,93 @@ public class AdminApiRouter {
     r.setRequestsPerDay(b.getInteger("requestsPerDay"));
     r.setBurstSize(b.getInteger("burstSize", 10));
     return r;
+  }
+
+  private void registerDashboardRoutes(Router router) {
+    router.get("/api/admin/dashboard/stats").handler(ctx -> {
+      Future<Long> totalRequestsFuture = mysqlPool.preparedQuery("SELECT COUNT(*) as c FROM access_log").execute()
+        .map(rs -> rs.iterator().next().getLong("c"));
+
+      Future<Long> activeRoutesFuture = mysqlPool.preparedQuery("SELECT COUNT(*) as c FROM gateway_route WHERE deleted = 0").execute()
+        .map(rs -> rs.iterator().next().getLong("c"));
+
+      Future<Long> activeServicesFuture = mysqlPool.preparedQuery("SELECT COUNT(*) as c FROM gateway_service WHERE deleted = 0").execute()
+        .map(rs -> rs.iterator().next().getLong("c"));
+
+      Future<Long> errorCountFuture = mysqlPool.preparedQuery("SELECT COUNT(*) as c FROM access_log WHERE response_status >= 400").execute()
+        .map(rs -> rs.iterator().next().getLong("c"));
+
+      Future<JsonArray> serviceHealthFuture = mysqlPool.preparedQuery(
+        "SELECT s.id, s.name, " +
+        "SUM(CASE WHEN i.healthy = 1 AND i.enabled = 1 AND i.deleted = 0 THEN 1 ELSE 0 END) as healthy_count, " +
+        "COUNT(CASE WHEN i.deleted = 0 THEN 1 END) as total_count " +
+        "FROM gateway_service s LEFT JOIN service_instance i ON s.id = i.service_id " +
+        "WHERE s.deleted = 0 GROUP BY s.id, s.name")
+        .execute()
+        .map(rs -> {
+          JsonArray arr = new JsonArray();
+          for (Row row : rs) {
+            long healthyCount = row.getLong("healthy_count");
+            arr.add(new JsonObject()
+              .put("name", row.getString("name"))
+              .put("status", healthyCount > 0 ? "HEALTHY" : "UNHEALTHY")
+              .put("instanceCount", row.getLong("total_count").intValue()));
+          }
+          return arr;
+        });
+
+      Future<JsonArray> alertsFuture = mysqlPool.preparedQuery(
+        "SELECT s.id, s.name, " +
+        "SUM(CASE WHEN i.healthy = 1 AND i.enabled = 1 AND i.deleted = 0 THEN 1 ELSE 0 END) as healthy_count " +
+        "FROM gateway_service s LEFT JOIN service_instance i ON s.id = i.service_id " +
+        "WHERE s.deleted = 0 GROUP BY s.id, s.name HAVING healthy_count = 0")
+        .execute()
+        .compose(rs -> {
+          JsonArray alerts = new JsonArray();
+          String now = LocalDateTime.now().toString();
+          for (Row row : rs) {
+            alerts.add(new JsonObject()
+              .put("time", now)
+              .put("message", row.getString("name") + " 无健康实例"));
+          }
+          return mysqlPool.preparedQuery(
+            "SELECT c.service_id, s.name, c.state " +
+            "FROM circuit_breaker_state c JOIN gateway_service s ON c.service_id = s.id " +
+            "WHERE c.state = 'OPEN'")
+            .execute()
+            .map(cbRs -> {
+              for (Row row : cbRs) {
+                alerts.add(new JsonObject()
+                  .put("time", now)
+                  .put("message", row.getString("name") + " 熔断器状态: OPEN"));
+              }
+              return alerts;
+            });
+        });
+
+      JsonObject holder = new JsonObject();
+      Future.<Void>succeededFuture(null)
+        .compose(v -> totalRequestsFuture.map(c -> { holder.put("totalRequests", c); return null; }))
+        .compose(v -> activeRoutesFuture.map(c -> { holder.put("activeRoutes", c); return null; }))
+        .compose(v -> activeServicesFuture.map(c -> { holder.put("activeServices", c); return null; }))
+        .compose(v -> errorCountFuture.map(c -> { holder.put("errorCount", c); return null; }))
+        .compose(v -> serviceHealthFuture.map(arr -> { holder.put("serviceHealth", arr); return null; }))
+        .compose(v -> alertsFuture.map(arr -> { holder.put("alerts", arr); return null; }))
+        .onSuccess(v -> {
+          long total = holder.getLong("totalRequests", 0L);
+          long errors = holder.getLong("errorCount", 0L);
+          double errorRate = total > 0 ? Math.round((errors * 1000.0) / total) / 10.0 : 0.0;
+          JsonObject result = new JsonObject()
+            .put("stats", new JsonObject()
+              .put("totalRequests", total)
+              .put("activeRoutes", holder.getLong("activeRoutes", 0L))
+              .put("activeServices", holder.getLong("activeServices", 0L))
+              .put("errorRate", errorRate))
+            .put("serviceHealth", holder.getJsonArray("serviceHealth", new JsonArray()))
+            .put("alerts", holder.getJsonArray("alerts", new JsonArray()));
+          ctx.json(result);
+        })
+        .onFailure(err -> ctx.fail(500));
+    });
   }
 }
