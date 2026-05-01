@@ -5,7 +5,7 @@ import java.time.LocalDateTime;
 public class ServiceInstance {
 
     public enum Status {
-        HEALTHY, UNHEALTHY, DOWN
+        HEALTHY, UNHEALTHY
     }
 
     private Long id;
